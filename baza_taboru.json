@@ -1,0 +1,144 @@
+[
+  {
+    "id": "34b95b80-015a-4904-988a-38a867506c91",
+    "number": "IC 1328/9",
+    "type": "odjazd",
+    "time": "04:20",
+    "route": "Łódź Kaliska - Kraków Główny",
+    "consist": {
+      "type": "ezt",
+      "model": "ED160"
+    },
+    "schedule": {
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0
+      ],
+      "datesIncluded": [],
+      "datesExcluded": []
+    }
+  },
+  {
+    "id": "3fdb6c83-5e8d-468a-8aa0-126c171974b3",
+    "number": "IC 1528/9",
+    "type": "odjazd",
+    "time": "04:48",
+    "route": "Łódź Kaliska - Gdynia Główna",
+    "consist": {
+      "type": "ezt",
+      "model": "ED160"
+    },
+    "schedule": {
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0
+      ],
+      "datesIncluded": [],
+      "datesExcluded": []
+    }
+  },
+  {
+    "id": "a698a553-98f0-4bc6-a6aa-901fa3d90af0",
+    "number": "IC 1522/3",
+    "type": "odjazd",
+    "time": "05:43",
+    "route": "Łódź Kaliska - Olsztyn Główny",
+    "consist": {
+      "type": "ezt",
+      "model": "ED160"
+    },
+    "schedule": {
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0
+      ],
+      "datesIncluded": [],
+      "datesExcluded": []
+    }
+  },
+  {
+    "id": "e092d4b2-c10a-4581-9465-733396a8a9e9",
+    "number": "IC 1904/5",
+    "type": "przyjazd",
+    "time": "16:50",
+    "route": "Warszawa Wschodnia - Łodź Kaliska",
+    "consist": {
+      "type": "ezt",
+      "model": "ED160"
+    },
+    "schedule": {
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "datesIncluded": [],
+      "datesExcluded": []
+    }
+  },
+  {
+    "id": "90f06048-bb78-4208-a4e8-378328100570",
+    "number": "IC 5122/3",
+    "type": "przyjazd",
+    "time": "22:06",
+    "route": "Olsztyn Główny - Łódź Kaliska",
+    "consist": {
+      "type": "ezt",
+      "model": "ED160"
+    },
+    "schedule": {
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0
+      ],
+      "datesIncluded": [],
+      "datesExcluded": []
+    }
+  },
+  {
+    "id": "4ffa4b00-0ee1-4811-8859-05e4a164c681",
+    "number": "IC 5128/9",
+    "type": "przyjazd",
+    "time": "22:59",
+    "route": "Gdynia Główna - Łódź Kaliska",
+    "consist": {
+      "type": "ezt",
+      "model": "ED160"
+    },
+    "schedule": {
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0
+      ],
+      "datesIncluded": [],
+      "datesExcluded": []
+    }
+  }
+]
