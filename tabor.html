@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moduł 1: Kreator Bazy Taboru</title>
+    
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
+    <style>
+        /* Wersja aplikacji: v1.0
+           Autorzy: Gemini & Piotr M 🚂
+           Opis: Moduł do tworzenia pliku JSON z definicjami pociągów.
+        */
+
+        :root {
+            --primary: #004d40; /* Ciemna zieleń kolejowa */
+            --secondary: #e0f2f1;
+            --accent: #ff6f00;
+            --text: #212121;
+            --bg: #fafafa;
+            --border: #b0bec5;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header {
+            border-bottom: 3px solid var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        h1 { color: var(--primary); margin: 0 0 10px 0; }
+        
+        .io-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Formularz */
+        .train-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            background: var(--secondary);
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+            border: 1px solid var(--primary);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"], input[type="time"], select {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .days-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 5px 0;
+        }
+
+        .day-check {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .day-check input { margin-right: 5px; }
+
+        .full-width { grid-column: 1 / -1; }
+
+        /* Przyciski */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: #00332a; }
+
+        .btn-accent { background-color: var(--accent); color: white; }
+        .btn-accent:hover { background-color: #e65100; }
+
+        .btn-danger { background-color: #d32f2f; color: white; padding: 5px 10px; font-size: 0.8rem; }
+
+        /* Tabela */
+        .table-responsive { overflow-x: auto; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th { background-color: #eee; color: var(--primary); }
+        
+        tr:hover { background-color: #f5f5f5; }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .tag-arr { background-color: #c8e6c9; color: #2e7d32; } /* Przyjazd */
+        .tag-dep { background-color: #ffcdd2; color: #c62828; } /* Odjazd */
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        /* Dostępność */
+        input:focus, select:focus, button:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <div class="container">
+        <header>
+            <h1>🛤️ Kreator Bazy Taboru</h1>
+            <div class="io-controls">
+                <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="loadDatabase(this)">
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📂 Wczytaj JSON</button>
+                <button class="btn btn-accent" onclick="downloadDatabase()">💾 Pobierz JSON</button>
+            </div>
+        </header>
+
+        <main>
+            <section aria-labelledby="form-heading">
+                <h2 id="form-heading">Dodaj nowy pociąg</h2>
+                <form id="trainForm" class="train-form" onsubmit="addTrain(event)">
+                    <div class="form-group">
+                        <label for="trainNumber">Numer Pociągu:</label>
+                        <input type="text" id="trainNumber" placeholder="np. 12345 / IC 5400" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="trainType">Typ Operacji:</label>
+                        <select id="trainType" required>
+                            <option value="przyjazd">Przyjazd (Wjazd na stację)</option>
+                            <option value="odjazd">Odjazd (Wyjazd ze stacji)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="trainTime">Godzina:</label>
+                        <input type="time" id="trainTime" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="trainRoute">Relacja (Skąd/Dokąd):</label>
+                        <input type="text" id="trainRoute" placeholder="np. Warszawa Wsch. - Gdynia Gł." required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Dni kursowania:</label>
+                        <div class="days-checkboxes">
+                            <label class="day-check"><input type="checkbox" name="day" value="1"> Pon</label>
+                            <label class="day-check"><input type="checkbox" name="day" value="2"> Wt</label>
+                            <label class="day-check"><input type="checkbox" name="day" value="3"> Śr</label>
+                            <label class="day-check"><input type="checkbox" name="day" value="4"> Czw</label>
+                            <label class="day-check"><input type="checkbox" name="day" value="5"> Pt</label>
+                            <label class="day-check"><input type="checkbox" name="day" value="6"> Sob</label>
+                            <label class="day-check"><input type="checkbox" name="day" value="0"> Nd</label>
+                            <button type="button" class="btn btn-primary" style="padding: 2px 8px; font-size: 0.7rem; margin-left: 10px;" onclick="toggleAllDays(true)">Zaznacz wszystkie</button>
+                            <button type="button" class="btn btn-primary" style="padding: 2px 8px; font-size: 0.7rem;" onclick="toggleAllDays(false)">Odznacz</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="datesIncluded">Dodatkowe daty (YYYY-MM-DD):</label>
+                        <input type="text" id="datesIncluded" placeholder="np. 2025-11-01, 2025-12-24">
+                        <small>Daty rozdzielaj przecinkami. Pociąg pojedzie w te dni, nawet jak dzień tygodnia nie pasuje.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="datesExcluded">Daty wyłączone (YYYY-MM-DD):</label>
+                        <input type="text" id="datesExcluded" placeholder="np. 2025-12-25">
+                        <small>Daty rozdzielaj przecinkami. Pociąg NIE pojedzie w te dni.</small>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">➕ Dodaj do bazy</button>
+                    </div>
+                </form>
+            </section>
+
+            <section aria-labelledby="list-heading">
+                <h2 id="list-heading">Aktualna lista składów w bazie (<span id="countDisplay">0</span>)</h2>
+                <div class="table-responsive">
+                    <table id="databaseTable">
+                        <thead>
+                            <tr>
+                                <th>Typ</th>
+                                <th>Godzina</th>
+                                <th>Nr Pociągu</th>
+                                <th>Relacja</th>
+                                <th>Kursowanie</th>
+                                <th>Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Współautorzy: Gemini & Piotr M 🚂 | Wersja aplikacji: v1.0</p>
+        </footer>
+    </div>
+
+    <script>
+        /* LOGIKA APLIKACJI - Moduł 1 (Kreator Bazy)
+           Wersja: 1.0
+        */
+
+        let trainDatabase = [];
+
+        // Dodawanie pociągu
+        function addTrain(event) {
+            event.preventDefault();
+
+            // Pobieranie dni tygodnia
+            const checkboxes = document.querySelectorAll('input[name="day"]:checked');
+            const days = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (days.length === 0 && document.getElementById('datesIncluded').value === "") {
+                alert("Musisz wybrać przynajmniej jeden dzień tygodnia lub datę specjalną!");
+                return;
+            }
+
+            const newTrain = {
+                id: crypto.randomUUID(), // Unikalny ID dla każdego rekordu
+                number: document.getElementById('trainNumber').value,
+                type: document.getElementById('trainType').value,
+                time: document.getElementById('trainTime').value,
+                route: document.getElementById('trainRoute').value,
+                schedule: {
+                    days: days, // [1, 2, ...]
+                    datesIncluded: parseDates(document.getElementById('datesIncluded').value),
+                    datesExcluded: parseDates(document.getElementById('datesExcluded').value)
+                }
+            };
+
+            trainDatabase.push(newTrain);
+            sortDatabase();
+            renderTable();
+            event.target.reset(); // Czyści formularz
+        }
+
+        // Pomocnicza funkcja do parsowania dat z inputu
+        function parseDates(string) {
+            if (!string) return [];
+            return string.split(',').map(s => s.trim()).filter(s => s.match(/^\d{4}-\d{2}-\d{2}$/));
+        }
+
+        // Pomocnicza do zaznaczania dni
+        function toggleAllDays(check) {
+            document.querySelectorAll('input[name="day"]').forEach(cb => cb.checked = check);
+        }
+
+        // Usuwanie pociągu
+        function deleteTrain(id) {
+            if(confirm("Czy na pewno chcesz usunąć ten pociąg z bazy?")) {
+                trainDatabase = trainDatabase.filter(t => t.id !== id);
+                renderTable();
+            }
+        }
+
+        // Sortowanie (najpierw wg typu, potem wg godziny)
+        function sortDatabase() {
+            trainDatabase.sort((a, b) => {
+                if (a.type !== b.type) return a.type.localeCompare(b.type);
+                return a.time.localeCompare(b.time);
+            });
+        }
+
+        // Renderowanie tabeli
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            document.getElementById('countDisplay').innerText = trainDatabase.length;
+
+            const dayNames = {1: 'Pn', 2: 'Wt', 3: 'Śr', 4: 'Czw', 5: 'Pt', 6: 'Sob', 0: 'Nd'};
+
+            trainDatabase.forEach(train => {
+                const typeLabel = train.type === 'przyjazd' 
+                    ? '<span class="tag tag-arr">PRZYJAZD</span>' 
+                    : '<span class="tag tag-dep">ODJAZD</span>';
+                
+                const daysStr = train.schedule.days.length === 7 
+                    ? 'Codziennie' 
+                    : train.schedule.days.map(d => dayNames[d]).join(', ');
+
+                const exceptions = [];
+                if (train.schedule.datesIncluded.length > 0) exceptions.push(`+ ${train.schedule.datesIncluded.length} dat`);
+                if (train.schedule.datesExcluded.length > 0) exceptions.push(`- ${train.schedule.datesExcluded.length} wyłączeń`);
+
+                const row = `
+                    <tr>
+                        <td>${typeLabel}</td>
+                        <td><strong>${train.time}</strong></td>
+                        <td>${train.number}</td>
+                        <td>${train.route}</td>
+                        <td style="font-size: 0.85rem;">
+                            ${daysStr} <br>
+                            <span style="color:red; font-size:0.75rem">${exceptions.join(', ')}</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger" onclick="deleteTrain('${train.id}')">Usuń</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Pobieranie JSON (Eksport)
+        function downloadDatabase() {
+            if (trainDatabase.length === 0) {
+                alert("Baza jest pusta!");
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(trainDatabase, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "baza_pociagow.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        // Wczytywanie JSON (Import)
+        function loadDatabase(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if (Array.isArray(json)) {
+                        trainDatabase = json;
+                        sortDatabase();
+                        renderTable();
+                        alert("Baza wczytana pomyślnie!");
+                    } else {
+                        alert("Nieprawidłowy format pliku JSON.");
+                    }
+                } catch (error) {
+                    alert("Błąd odczytu pliku: " + error);
+                }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
