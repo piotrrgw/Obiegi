@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moduł 1: Kreator Bazy Taboru v1.2</title>
+    <title>Moduł 1: Kreator Bazy Taboru v1.3</title>
     
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -11,9 +11,9 @@
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
     <style>
-        /* Wersja aplikacji: v1.2
+        /* Wersja aplikacji: v1.3
            Autorzy: Gemini & Piotr M 🚂
-           Opis: Dodano swobodne pozycjonowanie lokomotyw w składach wagonowych.
+           Opis: Dodano swobodne pozycjonowanie lokomotyw w składach wagonowych oraz automatyczne pobieranie JSON z serwera.
         */
 
         :root {
@@ -188,10 +188,10 @@
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="container">
         <header>
-            <h1>🛤️ Kreator Bazy Taboru v1.2</h1>
+            <h1>🛤️ Kreator Bazy Taboru v1.3</h1>
             <div class="io-controls">
                 <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="loadDatabase(this)" aria-label="Wczytaj plik bazy JSON">
-                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📂 Wczytaj JSON</button>
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📂 Wczytaj lokalnie JSON</button>
                 <button class="btn btn-accent" onclick="downloadDatabase()">💾 Pobierz JSON</button>
             </div>
         </header>
@@ -333,17 +333,17 @@
         </main>
 
         <footer>
-            <p>Współautorzy: Gemini & Piotr M 🚂 | Wersja aplikacji: v1.2</p>
+            <p>Współautorzy: Gemini & Piotr M 🚂 | Wersja aplikacji: v1.3</p>
         </footer>
     </div>
 
     <script>
-        /* LOGIKA APLIKACJI - Moduł 1 v1.2 */
+        /* LOGIKA APLIKACJI - Moduł 1 v1.3 */
         
         let trainDatabase = [];
         let includedDates = [];
         let excludedDates = [];
-        let currentConsist = []; // Zamiast currentWagons. Przechowuje obiekty {id: 'EP07', type: 'loco'}
+        let currentConsist = []; 
 
         // --- OBSŁUGA ZESTAWIENIA I WIZUALIZACJI ---
         
@@ -408,7 +408,7 @@
                 excludedDates.push(dateVal);
                 renderDateTags('exc');
             }
-            document.getElementById(inputId).value = ''; // czyszczenie inputu
+            document.getElementById(inputId).value = ''; 
         }
 
         function removeDate(type, dateStr) {
@@ -459,7 +459,7 @@
 
             const consistData = isEzt 
                 ? { type: 'ezt', model: document.getElementById('eztSelect').value }
-                : { type: 'wagonowy', elements: [...currentConsist] }; // Zapis całej tablicy obiektów
+                : { type: 'wagonowy', elements: [...currentConsist] }; 
 
             const newTrain = {
                 id: crypto.randomUUID(),
@@ -479,7 +479,6 @@
             sortDatabase();
             renderTable();
             
-            // Resetowanie formularza
             event.target.reset();
             includedDates = [];
             excludedDates = [];
@@ -514,16 +513,13 @@
                 const badgeClass = train.type === 'przyjazd' ? 'bg-arr' : 'bg-dep';
                 const typeLabel = `<span class="type-badge ${badgeClass}">${train.type.toUpperCase()}</span>`;
                 
-                // Generowanie opisu zestawienia
                 let consistDesc = '';
                 if(train.consist.type === 'ezt') {
                     consistDesc = `<strong>${train.consist.model}</strong>`;
                 } else {
-                    // Kompatybilność z v1.1
                     if (train.consist.loco) {
                         consistDesc = `<strong>${train.consist.loco}</strong> + [${train.consist.wagons.join(', ')}]`;
                     } else {
-                        // Logika v1.2
                         const elementsText = train.consist.elements.map(e => e.type === 'loco' ? `<strong>${e.id}</strong>` : e.id);
                         consistDesc = `[ ${elementsText.join(' - ')} ]`;
                     }
@@ -586,8 +582,33 @@
             reader.readAsText(file);
         }
 
-        // Inicjalizacja podglądu przy starcie
-        window.onload = updateVisualizer;
+        // --- AUTOMATYCZNE POBIERANIE BAZY Z SERWERA ---
+        function loadDatabaseFromServer() {
+            fetch('baza_taboru.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Nie znaleziono pliku bazy na serwerze.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        trainDatabase = data;
+                        sortDatabase();
+                        renderTable();
+                        console.log("Baza została automatycznie wczytana z serwera.");
+                    }
+                })
+                .catch(error => {
+                    console.log("Brak bazy na serwerze, startujemy z pustą. Szczegóły:", error);
+                });
+        }
+
+        // Inicjalizacja podglądu i próba pobrania bazy przy starcie
+        window.onload = function() {
+            updateVisualizer();
+            loadDatabaseFromServer();
+        };
     </script>
 </body>
 </html>
